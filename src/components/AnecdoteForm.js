@@ -1,11 +1,19 @@
 import { useMutation, useQueryClient } from "react-query"
 import { createAnecdote } from "../requests"
+import { useNotificationDispatch } from "../reducers/NotificationContext"
 
 const AnecdoteForm = () => {
   const queryClient = useQueryClient()
+
+  const dispatch = useNotificationDispatch()
+
   const newAnecdoteMutation = useMutation(createAnecdote, {
     onSuccess: () => {
       queryClient.invalidateQueries('anecdotes')
+    },
+    onError: () => {
+      dispatch({type: "SET", payload: "must be at least 5 characters"})
+      setTimeout(() => dispatch({type: "CLEAR"}), 3000)
     }
   })
 
@@ -13,7 +21,12 @@ const AnecdoteForm = () => {
     event.preventDefault()
     const content = event.target.anecdote.value
     event.target.anecdote.value = ''
+  
     newAnecdoteMutation.mutate({ content })
+    dispatch({type: "SET", payload: `added ${content}`})
+    setTimeout(() => dispatch({type: "CLEAR"}), 3000)
+
+    
 }
 
   return (
